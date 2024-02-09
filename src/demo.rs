@@ -2,7 +2,8 @@ use std::net::SocketAddr;
 use axum::{response::Html, Router, routing::get};
 use lazy_static::lazy_static;
 use tera::Tera;
-
+use tokio::runtime::Handle;
+use futures;
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
@@ -25,8 +26,16 @@ async fn root_handler() -> Html<String>{
 }
 
 #[tokio::main]
-async fn main () {
+pub async fn demo (handle: Handle) {
 
+    futures::executor::block_on(async  {
+        handle.spawn(
+            async {
+
+            }
+        ).await.expect("Task spawned in Tokio executor panicked!")
+    });
+    
     let route_hello = Router::new().route(
         "/",
         get(root_handler),
