@@ -41,7 +41,7 @@ pub async fn demo (handle: Handle) {
         get(root_handler),
     );
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(route_hello.into_make_service())
