@@ -11,7 +11,6 @@ tokio = { version = "1.0", features = ["full"] }
 tera = { version = "1", default-features = false }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 futures = "0.3.30"
-cargo-watch = "8.5.2"
 
 [dev-dependencies]
 anyhow = "1"
