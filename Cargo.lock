@@ -1070,6 +1070,7 @@ dependencies = [
  "futures",
  "httpc-test",
  "lazy_static",
+ "serde",
  "tera",
  "tokio",
 ]
