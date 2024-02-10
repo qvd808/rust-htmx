@@ -29,14 +29,14 @@ struct Item {
 
 async fn items_handler() -> Html<String> {
     let mut context = tera::Context::new();
-    
+
     let mut item_list: Vec<Item> = Vec::new();
     let ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et, consequat nibh. Etiam non elit dui. Nullam vel eros sit amet arcu vestibulum accumsan in in leo.";
     for i in 0..10 {
         let item = Item {
             id: i,
             name: format!("Item {}", i),
-            description: format!("Description of item {}",ipsum),
+            description: format!("Description of item {}", ipsum),
         };
         item_list.push(item);
     }
@@ -52,8 +52,6 @@ async fn root_handler() -> Html<String> {
     Html(r)
 }
 
-
-
 #[tokio::main]
 pub async fn demo(handle: Handle) {
     futures::executor::block_on(async {
@@ -67,12 +65,24 @@ pub async fn demo(handle: Handle) {
         .route("/", get(root_handler))
         .route("/item", get(items_handler))
         .nest("/static", axum_static::static_router("templates/assets"))
-        .route("/modal-add-item", get(|| async { 
-            let r = TEMPLATES
-            .render("modal/addItem.html", &tera::Context::new())
-            .unwrap();
-        Html(r)
-         }));
+        .route(
+            "/modal-add-item",
+            get(|| async {
+                let r = TEMPLATES
+                    .render("modal/addItem.html", &tera::Context::new())
+                    .unwrap();
+                Html(r)
+            }),
+        )
+        .route(
+            "/modal-edit-item",
+            get(|| async {
+                let r = TEMPLATES
+                    .render("modal/addButton.html", &tera::Context::new())
+                    .unwrap();
+                Html(r)
+            }),
+        );
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on {}", addr);

@@ -45,16 +45,21 @@
     <div class="flex flex-col items-center">
       <div
         class="flex flex-col text-2xl text-orange-950 p-4 animate-slideIn items-center justify-center"
-      >
+        >
         <p>Your List todo!</p>
-        <img 
-        hx-get="/modal-add-item"
-        hx-target="#modals-here" 
-        hx-trigger="load"
-        class="w-1/5 h-auto my-4 max-w-sm" src="./static/addItem.svg" />
-
+        <img
+          hx-get="/modal-add-item"
+          hx-target="#modals-here"
+          hx-trigger="click"
+          class="w-1/5 h-auto my-4 max-w-sm"
+          src="./static/addItem.svg"
+        />
+        </div>
+        <div >
+        <div id="modals-here">
+        
+        </div>
       </div>
-      <div id="modals-here"></div>
 
       <div
         class="bg-mintGreen w-3/4 h-auto aspect-square rounded-2xl max-h-fit py-4 mb-8"

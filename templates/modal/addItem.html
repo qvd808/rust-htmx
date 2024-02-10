@@ -1,6 +1,8 @@
+
 <div
   class="fixed inset-0 transition-opacity left-0 right-0 flex items-center justify-center h-screen z-20"
->
+    id="modal-add-item"
+  >
 <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
 
 <div
@@ -8,6 +10,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-headline"
+    id="modal-add-item"
   >
     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
       <label class="font-medium text-gray-800">Name</label>
@@ -15,7 +18,7 @@
         type="text"
         class="w-full outline-none rounded bg-silver p-2 mt-2 mb-3"
       />
-      <label class="font-medium text-gray-800">Url</label>
+      <label class="font-medium text-gray-800">Description</label>
       <input
         type="text"
         class="w-full outline-none rounded bg-silver p-2 mt-2 mb-3"
@@ -25,14 +28,18 @@
       <button
         type="button"
         class="py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-700 mr-2"
+        hx-swap="outerHTML"
+        hx-trigger="click"
+        hx-target="body"
+        hx-get="/"
       >
-        <i class="fas fa-times"></i> Cancel
+        Cancel
       </button>
       <button
         type="button"
         class="py-2 px-4 bg-blue-500 text-white rounded font-medium hover:bg-blue-700 mr-2 transition duration-500"
       >
-        <i class="fas fa-plus"></i> Create
+       Create
       </button>
     </div>
   </div>
