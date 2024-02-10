@@ -1,4 +1,4 @@
-use axum::{response::Html, routing::get, Router};
+use axum::{response::Html, routing::{get, post}, Router};
 use futures;
 use lazy_static::lazy_static;
 use serde::Serialize;
@@ -20,29 +20,38 @@ lazy_static! {
     };
 }
 
-#[derive(Serialize)]
+
+#[derive(Serialize, Clone)]
 struct Item {
     id: i32,
     name: String,
     description: String,
 }
 
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref ITEMS: Mutex<Vec<Item>> = Mutex::new(Vec::new());
+}
+
 async fn items_handler() -> Html<String> {
     let mut context = tera::Context::new();
 
-    let mut item_list: Vec<Item> = Vec::new();
-    let ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et, consequat nibh. Etiam non elit dui. Nullam vel eros sit amet arcu vestibulum accumsan in in leo.";
-    for i in 0..10 {
-        let item = Item {
-            id: i,
-            name: format!("Item {}", i),
-            description: format!("Description of item {}", ipsum),
-        };
-        item_list.push(item);
-    }
+    let item_list: Vec<Item> = ITEMS.lock().unwrap().clone();
+
     context.insert("items", &item_list);
     let r = TEMPLATES.render("items.html", &context).unwrap();
     Html(r)
+}
+
+async fn add_item_handler() {
+
+    ITEMS.lock().unwrap().push(Item {
+        id: 1,
+        name: "Item 1".to_string(),
+        description: "Description 1".to_string(),
+    });
+
 }
 
 async fn root_handler() -> Html<String> {
@@ -63,7 +72,8 @@ pub async fn demo(handle: Handle) {
 
     let route_hello = Router::new()
         .route("/", get(root_handler))
-        .route("/item", get(items_handler))
+        .route("/api/item", get(items_handler))
+        .route("/api/add-item", post(add_item_handler))
         .nest("/static", axum_static::static_router("templates/assets"))
         .route(
             "/modal-add-item",
