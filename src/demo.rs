@@ -52,6 +52,8 @@ async fn root_handler() -> Html<String> {
     Html(r)
 }
 
+
+
 #[tokio::main]
 pub async fn demo(handle: Handle) {
     futures::executor::block_on(async {
@@ -63,7 +65,14 @@ pub async fn demo(handle: Handle) {
 
     let route_hello = Router::new()
         .route("/", get(root_handler))
-        .route("/item", get(items_handler));
+        .route("/item", get(items_handler))
+        .nest("/static", axum_static::static_router("templates/assets"))
+        .route("/modal-add-item", get(|| async { 
+            let r = TEMPLATES
+            .render("modal/addItem.html", &tera::Context::new())
+            .unwrap();
+        Html(r)
+         }));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on {}", addr);
