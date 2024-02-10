@@ -22,22 +22,24 @@ lazy_static! {
 
 #[derive(Serialize)]
 struct Item {
+    id: i32,
     name: String,
     description: String,
 }
 
 async fn items_handler() -> Html<String> {
     let mut context = tera::Context::new();
-    let item_list: [Item; 2] = [
-        Item {
-            name: "Item 1".to_string(),
-            description: "Description of item 1".to_string(),
-        },
-        Item {
-            name: "Item 2".to_string(),
-            description: "Description of item 2".to_string(),
-        },
-    ];
+    
+    let mut item_list: Vec<Item> = Vec::new();
+    let ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et, consequat nibh. Etiam non elit dui. Nullam vel eros sit amet arcu vestibulum accumsan in in leo.";
+    for i in 0..10 {
+        let item = Item {
+            id: i,
+            name: format!("Item {}", i),
+            description: format!("Description of item {}",ipsum),
+        };
+        item_list.push(item);
+    }
     context.insert("items", &item_list);
     let r = TEMPLATES.render("items.html", &context).unwrap();
     Html(r)
