@@ -43,10 +43,21 @@ async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
 
     let db = Database::new();
     let item = db.get_item_with_id(id as i64);
+    match item {
+        Some(item) => {
+            context.insert("name", &item.get_name());
+            context.insert("description", &item.get_description());
+        }
+        None => {
+        //     context.insert("id", &0);
+        //     context.insert("name", &"");
+        //     context.insert("description", &"");
+        // }
+        println!("Item not found");
+        }
+    }
 
-    context.insert("name", &item.get_name());
-    context.insert("description", &item.get_description());
-
+    
     let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
     Html(r)
 }

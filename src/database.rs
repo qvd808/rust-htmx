@@ -49,17 +49,21 @@ impl Database {
         items
     }
 
-    pub fn get_item_with_id(&self, id: i64) -> Item{
+    pub fn get_item_with_id(&self, id: i64) -> Option<Item> {
 
         let mut statement = self.connection
             .prepare(format!("SELECT id, name, description FROM items WHERE id = {}", id).as_str())
             .unwrap();
         
-        let x = statement.next().unwrap();
-        Item::new(
-            Some(statement.read::<i64, _>(0).unwrap()),
-            statement.read::<String, _>(1).unwrap(),
-            statement.read::<String, _>(2).unwrap(),
-        )
+        let item = statement.next().unwrap();
+        match item {
+            State::Row => Some(Item::new(
+                Some(statement.read::<i64, _>(0).unwrap()),
+                statement.read::<String, _>(1).unwrap(),
+                statement.read::<String, _>(2).unwrap(),
+            )),
+            State::Done => None,
+        }
+        
     }
 }
