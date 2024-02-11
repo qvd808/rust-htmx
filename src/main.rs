@@ -33,9 +33,19 @@ async fn items_handler() -> Html<String> {
     let item_list = db.get_all_items();
     let mut context = tera::Context::new();
 
-    context.insert("items", &item_list);
-    let r = TEMPLATES.render("items.html", &context).unwrap();
-    Html(r)
+    match item_list {
+        Ok(item_list) => {
+            context.insert("items", &item_list);
+            let r = TEMPLATES.render("items.html", &context).unwrap();
+            Html(r)
+        }
+        Err(_) => {
+            println!("Error getting items");
+            Html("Error getting items".to_string())
+        }
+    }
+
+
 }
 
 async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
@@ -49,15 +59,14 @@ async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
             context.insert("description", &item.get_description());
         }
         None => {
-        //     context.insert("id", &0);
-        //     context.insert("name", &"");
-        //     context.insert("description", &"");
-        // }
-        println!("Item not found");
+            //     context.insert("id", &0);
+            //     context.insert("name", &"");
+            //     context.insert("description", &"");
+            // }
+            println!("Item not found");
         }
     }
 
-    
     let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
     Html(r)
 }
@@ -66,14 +75,21 @@ async fn add_item_handler(Form(params): Form<Item>) -> Response<Body> {
     let insert_item = Item::new(None, params.get_name(), params.get_description());
 
     let db = Database::new();
-    db.add_item(insert_item);
+    let res = db.add_item(insert_item);
 
-    Response::builder()
-        .status(200)
-        .header("Content-Type", "text/html")
-        .header("HX-Refresh", "true")
-        .body(Body::from("not found"))
-        .unwrap()
+    match res {
+        Ok(_) => Response::builder()
+            .status(200)
+            .header("Content-Type", "text/html")
+            .header("HX-Refresh", "true")
+            .body(Body::from("Item added"))
+            .unwrap(),
+        Err(_) => Response::builder()
+            .status(500)
+            .header("Content-Type", "text/html")
+            .body(Body::from("Error adding item"))
+            .unwrap(),
+    }
 }
 
 async fn root_handler() -> Html<String> {
@@ -85,8 +101,8 @@ async fn root_handler() -> Html<String> {
 
 #[tokio::main]
 pub async fn main() {
-    let db = Database::new();
-    db.create_table();
+    // let db = Database::new();
+    // db.create_table();
 
     let route_hello = Router::new()
         .route("/", get(root_handler))

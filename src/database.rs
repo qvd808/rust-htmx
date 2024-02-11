@@ -24,29 +24,37 @@ impl Database {
             .unwrap();
     }
 
-    pub fn add_item(&self, item: Item) {
+    pub fn add_item(&self, item: Item) -> Result<(), Error>{
         self.connection
             .execute(
                 format!("INSERT INTO items (name, description) VALUES ('{}', '{}')", item.get_name(), item.get_description()).as_str(),
             )
             .unwrap();
+        Ok(())
     }
 
-    pub fn get_all_items(&self) -> Vec<Item> {
-        let mut statement = self.connection
-            .prepare("SELECT id, name, description FROM items")
-            .unwrap();
+    pub fn get_all_items(&self) -> Result<Vec<Item>, Error> {
 
-        let mut items = Vec::new();
-        while let State::Row = statement.next().unwrap() {
-            items.push(Item::new(
-                
-                Some(statement.read::<i64, _>(0).unwrap()),
-                statement.read::<String, _>(1).unwrap(),
-                statement.read::<String, _>(2).unwrap(),
-            ));
+        let res = self.connection
+            .prepare("SELECT id, name, description FROM items");
+
+        match res {
+            Ok(mut statement) => {
+                let mut items = Vec::new();
+                while let State::Row = statement.next().unwrap() {
+                    items.push(Item::new(
+                        
+                        Some(statement.read::<i64, _>(0).unwrap()),
+                        statement.read::<String, _>(1).unwrap(),
+                        statement.read::<String, _>(2).unwrap(),
+                    ));
+                }
+                Ok(items)
+            }
+            Err(e) => Err(e),
         }
-        items
+
+       
     }
 
     pub fn get_item_with_id(&self, id: i64) -> Option<Item> {
