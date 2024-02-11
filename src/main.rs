@@ -130,6 +130,10 @@ async fn root_handler() -> Html<String> {
 
 #[shuttle_runtime::main]
 async fn main() -> shuttle_axum::ShuttleAxum {
+
+    let db = Database::new();
+    db.create_table();
+
     let router = Router::new()
         .route("/", get(root_handler))
         .route("/api/item", get(get_single_item_handler))
