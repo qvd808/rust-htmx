@@ -30,6 +30,20 @@ async fn items_handler() -> Html<String> {
     let item_list = db.get_all_items(); 
     let mut context = tera::Context::new();
 
+    for item in &item_list {
+        match item.id {
+            Some(id) => {
+                println!("id: {}", id);
+                println!("name: {}", item.get_name());
+                println!("description: {}", item.get_description());
+            }
+            None => {
+                println!("name: {}", item.get_name());
+                println!("description: {}", item.get_description());
+            }
+        }
+    }
+
     context.insert("items", &item_list);
     let r = TEMPLATES.render("items.html", &context).unwrap();
     Html(r)
@@ -39,11 +53,15 @@ async fn items_handler() -> Html<String> {
 
 async fn add_item_handler(Form(params): Form<Item>) -> Response<Body>{
 
-    let insert_item = Item::new(params.get_name(), params.get_description());
+    let insert_item = Item::new(
+        None,
+        params.get_name(),
+        params.get_description()
+    );
 
     let db = Database::new();
     db.add_item(insert_item);
-    
+
     Response::builder()
         .status(200)
         .header("Content-Type", "text/html")

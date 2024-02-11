@@ -33,14 +33,16 @@ impl Database {
 
     pub fn get_all_items(&self) -> Vec<Item> {
         let mut statement = self.connection
-            .prepare("SELECT name, description FROM items")
+            .prepare("SELECT id, name, description FROM items")
             .unwrap();
 
         let mut items = Vec::new();
         while let State::Row = statement.next().unwrap() {
             items.push(Item::new(
-                statement.read::<String, _>(0).unwrap(),
+                
+                Some(statement.read::<i64, _>(0).unwrap()),
                 statement.read::<String, _>(1).unwrap(),
+                statement.read::<String, _>(2).unwrap(),
             ));
         }
         items
