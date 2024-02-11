@@ -2,7 +2,7 @@ use axum::{
     body::Body,
     extract::{Form, Path},
     response::{Html, Response},
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 use lazy_static::lazy_static;
@@ -28,7 +28,7 @@ lazy_static! {
     };
 }
 
-async fn items_handler() -> Html<String> {
+async fn get_single_item_handler() -> Html<String> {
     let db = Database::new();
     let item_list = db.get_all_items();
     let mut context = tera::Context::new();
@@ -48,7 +48,29 @@ async fn items_handler() -> Html<String> {
 
 }
 
-async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
+async fn put_single_item_handler(Form(params): Form<Item>) ->Response<Body> {
+    let db = Database::new();
+
+    let res = db.update_item(params);
+    // let res:Result<(), anyhow::Error> = Ok(() );
+
+    match res {
+        Ok(_) => 
+        Response::builder()
+            .status(200)
+            .header("Content-Type", "text/html")
+            .header("HX-Refresh", "true")
+            .body(Body::from("Item updated"))
+            .unwrap(),
+        Err(_) => Response::builder()
+            .status(500)
+            .header("Content-Type", "text/html")
+            .body(Body::from("Error adding item"))
+            .unwrap(),
+    }
+}
+
+async fn update_single_item_handler(Path(id): Path<i32>) -> Html<String> {
     let mut context = tera::Context::new();
 
     let db = Database::new();
@@ -57,6 +79,8 @@ async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
         Some(item) => {
             context.insert("name", &item.get_name());
             context.insert("description", &item.get_description());
+            context.insert("method", "hx-put=/api/item");
+            context.insert("id", &item.id);
             let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
             Html(r)
         }
@@ -110,7 +134,7 @@ pub async fn main() {
 
     let route_hello = Router::new()
         .route("/", get(root_handler))
-        .route("/api/item", get(items_handler))
+        .route("/api/item", get(get_single_item_handler))
         .route("/api/add-item", post(add_item_handler))
         .nest("/static", axum_static::static_router("templates/assets"))
         .route(
@@ -119,6 +143,9 @@ pub async fn main() {
                 let mut context = tera::Context::new();
                 context.insert("name", "");
                 context.insert("description", "");
+                context.insert("method", "hx-post=/api/add-item");
+                context.insert("id", &0);
+
                 let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
                 Html(r)
             }),
@@ -132,7 +159,8 @@ pub async fn main() {
                 Html(r)
             }),
         )
-        .route("/modal-item/:id", get(update_item_handler));
+        .route("/modal-item/:id", get(update_single_item_handler))
+        .route("/api/item", put(put_single_item_handler));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on {}", addr);

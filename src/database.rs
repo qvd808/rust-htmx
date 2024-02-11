@@ -74,4 +74,19 @@ impl Database {
         }
         
     }
+
+    pub fn update_item(&self, item: Item) -> Result<(), Error> {
+        match item.id {
+            None => Err(Error { code: Some(0), message: Some("Item does not exist".to_string()) } ),
+            Some(_) => {
+                self.connection
+                    .execute(
+                        format!("UPDATE items SET name = '{}', description = '{}' WHERE id = {}", item.get_name(), item.get_description(), item.id.unwrap()).as_str(),
+                    )
+                    .unwrap();
+                Ok(())
+            },
+        }
+
+    }
 }
