@@ -1,7 +1,7 @@
 use sqlite::{State, Connection};
 use crate::item::Item;
 
-struct Database {
+pub struct Database {
     connection: Connection,
 }
 

@@ -7,6 +7,7 @@ use tera::Tera;
 pub mod item;
 pub mod database;
 use item::Item;
+use database::Database;
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
@@ -23,17 +24,11 @@ lazy_static! {
 }
 
 
-
-use std::sync::Mutex;
-
-lazy_static! {
-    static ref ITEMS: Mutex<Vec<Item>> = Mutex::new(Vec::new());
-}
-
 async fn items_handler() -> Html<String> {
-    let mut context = tera::Context::new();
 
-    let item_list: Vec<Item> = ITEMS.lock().unwrap().clone();
+    let db = Database::new();
+    let item_list = db.get_all_items(); 
+    let mut context = tera::Context::new();
 
     context.insert("items", &item_list);
     let r = TEMPLATES.render("items.html", &context).unwrap();
@@ -46,8 +41,9 @@ async fn add_item_handler(Form(params): Form<Item>) -> Response<Body>{
 
     let insert_item = Item::new(params.get_name(), params.get_description());
 
-    ITEMS.lock().unwrap().push(insert_item);
-      
+    let db = Database::new();
+    db.add_item(insert_item);
+    
     Response::builder()
         .status(200)
         .header("Content-Type", "text/html")
@@ -65,11 +61,13 @@ async fn root_handler() -> Html<String> {
 
 #[tokio::main]
 pub async fn main() {
+    let db = Database::new();
+    db.create_table();
 
     let route_hello = Router::new()
         .route("/", get(root_handler))
         .route("/api/item", get(items_handler))
-        .route("/api/add-item", post(add_item_handler))
+        .route("/api/add-item", post(add_item_handler) )
         .nest("/static", axum_static::static_router("templates/assets"))
         .route(
             "/modal-add-item",
