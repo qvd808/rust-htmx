@@ -6,7 +6,6 @@ use axum::{
     Router,
 };
 use lazy_static::lazy_static;
-use std::net::SocketAddr;
 use tera::Tera;
 
 pub mod database;
@@ -120,6 +119,7 @@ async fn add_item_handler(Form(params): Form<Item>) -> Response<Body> {
     }
 }
 
+
 async fn root_handler() -> Html<String> {
     let r = TEMPLATES
         .render("base.html", &tera::Context::new())
@@ -127,16 +127,13 @@ async fn root_handler() -> Html<String> {
     Html(r)
 }
 
-#[tokio::main]
-pub async fn main() {
-    let db = Database::new();
-    db.create_table();
 
-    let route_hello = Router::new()
+#[shuttle_runtime::main]
+async fn main() -> shuttle_axum::ShuttleAxum {
+    let router = Router::new()
         .route("/", get(root_handler))
         .route("/api/item", get(get_single_item_handler))
         .route("/api/add-item", post(add_item_handler))
-        .nest("/static", axum_static::static_router("templates/assets"))
         .route(
             "/modal-add-item",
             get(|| async {
@@ -162,10 +159,5 @@ pub async fn main() {
         .route("/modal-item/:id", get(update_single_item_handler))
         .route("/api/item", put(put_single_item_handler));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
-    println!("Listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(route_hello.into_make_service())
-        .await
-        .unwrap();
+    Ok(router.into())
 }
