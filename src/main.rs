@@ -57,18 +57,22 @@ async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
         Some(item) => {
             context.insert("name", &item.get_name());
             context.insert("description", &item.get_description());
+            let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
+            Html(r)
         }
         None => {
             //     context.insert("id", &0);
             //     context.insert("name", &"");
             //     context.insert("description", &"");
             // }
-            println!("Item not found");
+            context.insert("error", "The item with the given id does not exist. Please try again.");
+
+            let r = TEMPLATES.render("modal/error.html", &context).unwrap();
+            Html(r)
         }
     }
 
-    let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
-    Html(r)
+
 }
 
 async fn add_item_handler(Form(params): Form<Item>) -> Response<Body> {
@@ -101,8 +105,8 @@ async fn root_handler() -> Html<String> {
 
 #[tokio::main]
 pub async fn main() {
-    // let db = Database::new();
-    // db.create_table();
+    let db = Database::new();
+    db.create_table();
 
     let route_hello = Router::new()
         .route("/", get(root_handler))

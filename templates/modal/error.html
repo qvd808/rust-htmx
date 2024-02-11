@@ -1,0 +1,28 @@
+<div
+  class="fixed inset-0 transition-opacity left-0 right-0 flex items-center justify-center h-screen z-20"
+>
+  <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+
+  <form
+    class="inline-block align-center w-3/4 bg-white rounded-lg text-left overflow shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-headline"
+  >
+    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+      <label for="todo" class="font-medium text-gray-800">{{error}}</label>
+    </div>
+    <div class="bg-gray-200 px-4 py-3 text-right">
+      <button
+        type="button"
+        class="py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-700 mr-2"
+        hx-swap="outerHTML"
+        hx-trigger="click"
+        hx-target="body"
+        hx-get="/"
+      >
+        Ok
+      </button>
+    </div>
+  </form>
+</div>
