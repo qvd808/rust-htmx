@@ -1,4 +1,4 @@
-use axum::{body::Body, extract::{Query, Form}, response::{Html, Response}, routing::{get, post}, Router};
+use axum::{body::Body, extract::Form, response::{Html, Response}, routing::{get, post}, Router};
 use futures;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -46,10 +46,6 @@ async fn items_handler() -> Html<String> {
 
 
 async fn add_item_handler(Form(params): Form<Item>) -> Response<Body>{
-
-    // let lens = ITEMS.lock().unwrap().len() + 1;
-    println!("Adding item {:?}", params);
-
 
     ITEMS.lock().unwrap().push(Item {
         name: format!("Item {}", params.name),
