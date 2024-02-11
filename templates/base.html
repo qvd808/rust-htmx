@@ -45,7 +45,7 @@
     <div class="flex flex-col items-center">
       <div
         class="flex flex-col text-2xl text-orange-950 p-4 animate-slideIn items-center justify-center"
-        >
+      >
         <p>Your List todo!</p>
         <img
           hx-get="/modal-add-item"
@@ -54,11 +54,9 @@
           class="w-1/5 h-auto my-4 max-w-sm"
           src="./static/addItem.svg"
         />
-        </div>
-        <div >
-        <div id="modals-here">
-        
-        </div>
+      </div>
+      <div>
+        <div id="modals-here"></div>
       </div>
 
       <div
@@ -67,6 +65,7 @@
         hx-trigger="load"
       ></div>
     </div>
+
     <script src="https://unpkg.com/taos@1.0.5/dist/taos.js"></script>
   </body>
 

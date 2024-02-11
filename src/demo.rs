@@ -1,7 +1,7 @@
-use axum::{body::Body, response::{Html, Response}, routing::{get, post}, Router};
+use axum::{body::Body, extract::{Query, Form}, response::{Html, Response}, routing::{get, post}, Router};
 use futures;
 use lazy_static::lazy_static;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use tera::Tera;
 use tokio::runtime::Handle;
@@ -21,9 +21,8 @@ lazy_static! {
 }
 
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Deserialize, Debug)]
 struct Item {
-    id: i32,
     name: String,
     description: String,
 }
@@ -44,14 +43,17 @@ async fn items_handler() -> Html<String> {
     Html(r)
 }
 
-async fn add_item_handler() -> Response<Body>{
 
-    let lens = ITEMS.lock().unwrap().len() + 1;
+
+async fn add_item_handler(Form(params): Form<Item>) -> Response<Body>{
+
+    // let lens = ITEMS.lock().unwrap().len() + 1;
+    println!("Adding item {:?}", params);
+
 
     ITEMS.lock().unwrap().push(Item {
-        id: lens as i32,
-        name: format!("Item {}", lens),
-        description: format!("Description {}", lens),
+        name: format!("Item {}", params.name),
+        description: format!("Description {}", params.description),
     });
       
     Response::builder()
