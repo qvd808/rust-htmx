@@ -1,35 +1,99 @@
-// #![allow(unused)]
 
-// use std::net::SocketAddr;
+use axum::{body::Body, extract::Form, response::{Html, Response}, routing::{get, post}, Router};
+use lazy_static::lazy_static;
+use std::net::SocketAddr;
+use tera::Tera;
 
-// use axum::{response::Html, Router, routing::get};
+pub mod item;
+pub mod database;
+use item::Item;
 
-// #[tokio::main]
-// async fn main() {
-//     let route_hello = Router::new().route(
-//         "/hello",
-//         get(|| async { Html("Hello <strong> World!! </strong>")}),
-//     );
+lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut tera = match Tera::new("templates/**/*") {
+            Ok(t) => t,
+            Err(e) => {
+                println!("Parsing error(s): {}", e);
+                ::std::process::exit(1);
+            }
+        };
+        tera.autoescape_on(vec![".html", ".sql"]);
+        tera
+    };
+}
 
-//     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
-//     println!("Listening on {}", addr);
-//     axum::Server::bind(&addr)
-//         .serve(route_hello.into_make_service())
-//         .await
-//         .unwrap();
-// }
 
-pub mod demo;
-use demo::demo;
 
-use tokio::runtime::Handle;
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref ITEMS: Mutex<Vec<Item>> = Mutex::new(Vec::new());
+}
+
+async fn items_handler() -> Html<String> {
+    let mut context = tera::Context::new();
+
+    let item_list: Vec<Item> = ITEMS.lock().unwrap().clone();
+
+    context.insert("items", &item_list);
+    let r = TEMPLATES.render("items.html", &context).unwrap();
+    Html(r)
+}
+
+
+
+async fn add_item_handler(Form(params): Form<Item>) -> Response<Body>{
+
+    let insert_item = Item::new(params.get_name(), params.get_description());
+
+    ITEMS.lock().unwrap().push(insert_item);
+      
+    Response::builder()
+        .status(200)
+        .header("Content-Type", "text/html")
+        .header("HX-Refresh", "true")
+        .body(Body::from("not found"))
+        .unwrap()
+}
+
+async fn root_handler() -> Html<String> {
+    let r = TEMPLATES
+        .render("base.html", &tera::Context::new())
+        .unwrap();
+    Html(r)
+}
 
 #[tokio::main]
-async fn main() {
-    let handle = Handle::current();
-    tokio::task::spawn_blocking(|| {
-        demo(handle);
-    })
-    .await
-    .expect("Demo failed to run")
+pub async fn main() {
+
+    let route_hello = Router::new()
+        .route("/", get(root_handler))
+        .route("/api/item", get(items_handler))
+        .route("/api/add-item", post(add_item_handler))
+        .nest("/static", axum_static::static_router("templates/assets"))
+        .route(
+            "/modal-add-item",
+            get(|| async {
+                let r = TEMPLATES
+                    .render("modal/addItem.html", &tera::Context::new())
+                    .unwrap();
+                Html(r)
+            }),
+        )
+        .route(
+            "/modal-edit-item",
+            get(|| async {
+                let r = TEMPLATES
+                    .render("modal/addButton.html", &tera::Context::new())
+                    .unwrap();
+                Html(r)
+            }),
+        );
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
+    println!("Listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(route_hello.into_make_service())
+        .await
+        .unwrap();
 }
