@@ -1,4 +1,4 @@
-use axum::{response::Html, routing::{get, post}, Router};
+use axum::{body::Body, response::{Html, Response}, routing::{get, post}, Router};
 use futures;
 use lazy_static::lazy_static;
 use serde::Serialize;
@@ -44,14 +44,22 @@ async fn items_handler() -> Html<String> {
     Html(r)
 }
 
-async fn add_item_handler() {
+async fn add_item_handler() -> Response<Body>{
+
+    let lens = ITEMS.lock().unwrap().len() + 1;
 
     ITEMS.lock().unwrap().push(Item {
-        id: 1,
-        name: "Item 1".to_string(),
-        description: "Description 1".to_string(),
+        id: lens as i32,
+        name: format!("Item {}", lens),
+        description: format!("Description {}", lens),
     });
-
+      
+    Response::builder()
+        .status(200)
+        .header("Content-Type", "text/html")
+        .header("HX-Refresh", "true")
+        .body(Body::from("not found"))
+        .unwrap()
 }
 
 async fn root_handler() -> Html<String> {

@@ -1,11 +1,10 @@
-
 <div
   class="fixed inset-0 transition-opacity left-0 right-0 flex items-center justify-center h-screen z-20"
-    id="modal-add-item"
-  >
-<div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+  id="modal-add-item"
+>
+  <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
 
-<div
+  <div
     class="inline-block align-center w-3/4 bg-white rounded-lg text-left overflow shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
     role="dialog"
     aria-modal="true"
@@ -39,10 +38,11 @@
         type="button"
         class="py-2 px-4 bg-blue-500 text-white rounded font-medium hover:bg-blue-700 mr-2 transition duration-500"
         hx-post="/api/add-item"
+        hx-trigger="click"
+        hx-target="#modal-add-item"
       >
-       Create
+        Create
       </button>
     </div>
   </div>
-  
 </div>
