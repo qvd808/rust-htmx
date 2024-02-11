@@ -1,13 +1,18 @@
-
-use axum::{body::Body, extract::Form, response::{Html, Response}, routing::{get, post}, Router};
+use axum::{
+    body::Body,
+    extract::{Form, Path},
+    response::{Html, Response},
+    routing::{get, post},
+    Router,
+};
 use lazy_static::lazy_static;
 use std::net::SocketAddr;
 use tera::Tera;
 
-pub mod item;
 pub mod database;
-use item::Item;
+pub mod item;
 use database::Database;
+use item::Item;
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
@@ -23,41 +28,31 @@ lazy_static! {
     };
 }
 
-
 async fn items_handler() -> Html<String> {
-
     let db = Database::new();
-    let item_list = db.get_all_items(); 
+    let item_list = db.get_all_items();
     let mut context = tera::Context::new();
-
-    for item in &item_list {
-        match item.id {
-            Some(id) => {
-                println!("id: {}", id);
-                println!("name: {}", item.get_name());
-                println!("description: {}", item.get_description());
-            }
-            None => {
-                println!("name: {}", item.get_name());
-                println!("description: {}", item.get_description());
-            }
-        }
-    }
 
     context.insert("items", &item_list);
     let r = TEMPLATES.render("items.html", &context).unwrap();
     Html(r)
 }
 
+async fn update_item_handler(Path(id): Path<i32>) -> Html<String> {
+    let mut context = tera::Context::new();
 
+    let db = Database::new();
+    let item = db.get_item_with_id(id as i64);
 
-async fn add_item_handler(Form(params): Form<Item>) -> Response<Body>{
+    context.insert("name", &item.get_name());
+    context.insert("description", &item.get_description());
 
-    let insert_item = Item::new(
-        None,
-        params.get_name(),
-        params.get_description()
-    );
+    let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
+    Html(r)
+}
+
+async fn add_item_handler(Form(params): Form<Item>) -> Response<Body> {
+    let insert_item = Item::new(None, params.get_name(), params.get_description());
 
     let db = Database::new();
     db.add_item(insert_item);
@@ -85,14 +80,15 @@ pub async fn main() {
     let route_hello = Router::new()
         .route("/", get(root_handler))
         .route("/api/item", get(items_handler))
-        .route("/api/add-item", post(add_item_handler) )
+        .route("/api/add-item", post(add_item_handler))
         .nest("/static", axum_static::static_router("templates/assets"))
         .route(
             "/modal-add-item",
             get(|| async {
-                let r = TEMPLATES
-                    .render("modal/addItem.html", &tera::Context::new())
-                    .unwrap();
+                let mut context = tera::Context::new();
+                context.insert("name", "");
+                context.insert("description", "");
+                let r = TEMPLATES.render("modal/addItem.html", &context).unwrap();
                 Html(r)
             }),
         )
@@ -104,7 +100,8 @@ pub async fn main() {
                     .unwrap();
                 Html(r)
             }),
-        );
+        )
+        .route("/modal-item/:id", get(update_item_handler));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on {}", addr);

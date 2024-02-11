@@ -1,5 +1,6 @@
 use sqlite::{State, Connection};
 use crate::item::Item;
+use sqlite::Error;
 
 pub struct Database {
     connection: Connection,
@@ -7,7 +8,7 @@ pub struct Database {
 
 impl Database {
     pub fn new() -> Database {
-        let connection = sqlite::open("database.db").unwrap();
+        let connection = Connection::open("database.db").unwrap();
         Database { connection }
     }
 
@@ -46,5 +47,19 @@ impl Database {
             ));
         }
         items
+    }
+
+    pub fn get_item_with_id(&self, id: i64) -> Item{
+
+        let mut statement = self.connection
+            .prepare(format!("SELECT id, name, description FROM items WHERE id = {}", id).as_str())
+            .unwrap();
+        
+        let x = statement.next().unwrap();
+        Item::new(
+            Some(statement.read::<i64, _>(0).unwrap()),
+            statement.read::<String, _>(1).unwrap(),
+            statement.read::<String, _>(2).unwrap(),
+        )
     }
 }
